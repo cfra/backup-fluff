@@ -1,0 +1,19 @@
+# backup-fluff
+
+<aside class="warning">
+Highly experimental. No restore.
+</aside>
+
+## Overview
+
+This currently backs up legacy hosts with [rsync](https://arstechnica.com/information-technology/2015/12/rsync-net-zfs-replication-to-the-cloud-is-finally-here-and-its-fast/)
+
+Backup is done to a zfs dataset and each successful run is stored in a snapshot.
+
+## Testtour
+
+```
+# zfs create tank/backups
+# cp example.conf /tank/backups/
+# ./run-backup-job /tank/backups/example.conf
+```

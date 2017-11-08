@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Preparative work. Save current working directory
+# and get absolute path to code
+
+START_PWD="$(pwd)"
+CODE_PATH_REL="$(dirname $0)"
+cd "${CODE_PATH_REL}" || exit 1
+CODE_PATH_ABS="$(pwd)"
+
+# Setup and actual work start here
+cd "${START_PWD}"
+if [ x"${1%.conf}" = x"$1" ]; then
+	echo "Usage: $0 job.conf" >&2
+	exit 1
+fi
+
+CONFIG_FULL="$1"
+CONFIG_DIR="$(dirname $1)"
+
+# Switch to dir the config is in (extracted using dirname $1)
+cd "$(dirname $1)" || exit $?
+
+# Use relpaths from there, derive sane defaults from config name
+CONF="$(basename $1)"
+CONF_NAME="${CONF%.conf}"
+
+DEST="${CONF_NAME}"
+HOST="${CONF_NAME}"
+USER=root
+PORT=22
+SNAPNAME_FACTORY="${CODE_PATH_ABS}/lib/snapname-factories/utc-expanded"
+
+# Override defaults with config.
+. "./${CONF}" || exit $?
+
+# What to backup is taken from config, to make that decision explicit
+if [ x"$SOURCE" = x"" ]; then
+	echo "SOURCE unset. Is it missing in config?" >&2
+	exit 1
+fi
+
+# Derive current dataset from pwd and create backup dataset
+# if nonexist
+
+CUR_PWD="$(pwd)"
+CUR_DATASET="${CUR_PWD#/}"
+DEST_DATASET="${CUR_DATASET}/${DEST}"
+
+if [ ! -d "/${DEST_DATASET}" ]; then
+	zfs create "${DEST_DATASET}" || exit $?
+fi
+
+rsync \
+	-a \
+	-e "ssh -p $PORT" \
+	--delete \
+	--inplace \
+	"$USER@$HOST:$SOURCE" $DEST/
+
+if [ $? -eq 0 ]; then
+	# Do snapshot iff backup was successful
+	DEST_SNAPNAME="$(${SNAPNAME_FACTORY})"
+	DEST_SNAPSHOT="${DEST_DATASET}@${DEST_SNAPNAME}"
+	zfs snapshot "${DEST_SNAPSHOT}"
+else
+	exit $?
+fi
