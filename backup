@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Preparative work. Save current working directory
+# and get absolute path to code
+
+START_PWD="$(pwd)"
+CODE_PATH_REL="$(dirname $0)"
+cd "${CODE_PATH_REL}" || exit 1
+CODE_PATH_ABS="$(pwd)"
+
+# Setup and actual work start here
+cd "${START_PWD}"
+if [ x"${1%.conf}" = x"$1" ]; then
+	echo 1>&2
+	echo "This makes a backup."
+	echo "Usage: $0 job.conf" >&2
+	exit 1
+fi
+
+CONFIG_REL="$1"
+. "${CODE_PATH_ABS}/lib/configure"
+
+if [ ! -d "/${JOB_DATASET}" ]; then
+	zfs create "${JOB_DATASET}" || exit $?
+fi
+
+rsync \
+	-a \
+	-e "ssh -p $PORT" \
+	--delete \
+	--inplace \
+	"$USER@$HOST:$SOURCE" $JOB/
+
+if [ $? -eq 0 ]; then
+	JOB_SNAPNAME="$(${SNAPNAME_FACTORY})"
+	JOB_SNAPSHOT="${JOB_DATASET}@${JOB_SNAPNAME}"
+	zfs snapshot "${JOB_SNAPSHOT}"
+else
+	exit $?
+fi

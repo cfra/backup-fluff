@@ -1,4 +1,3 @@
 #!/bin/sh
 
-# Returns a snapname to use when creating a new snapshot
 exec date -u +%Y-%m-%d-%H-%M-%S

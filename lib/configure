@@ -1,0 +1,34 @@
+#
+# Uses CONFIG_REL with relative path to config file
+#
+# Populates environent with sane defaults
+# Overrides with config
+# Changes into the jobs directory
+#
+
+CONFIG_REL_DIR="$(dirname ${CONFIG_REL})"
+cd "$(dirname ${CONFIG_REL_DIR})" || exit $?
+
+# Derive sane defaults from config name, using relpaths from config dir
+CONFIG="$(basename ${CONFIG_REL})"
+CONFIG_NAME="${CONFIG%.conf}"
+
+JOB="${CONFIG_NAME}"
+HOST="${CONFIG_NAME}"
+USER=root
+PORT=22
+SNAPNAME_FACTORY="${CODE_PATH_ABS}/lib/snapname-factories/utc-expanded"
+
+# Override defaults with config.
+. "./${CONFIG}" || exit $?
+
+# What to backup is taken from config, make omission an error.
+if [ x"$SOURCE" = x"" ]; then
+	echo "SOURCE unset. Is it missing in config?" >&2
+	exit 1
+fi
+
+# Derive destination dataset
+PARENT_PWD="$(pwd)"
+PARENT_DATASET="${CUR_PWD#/}"
+JOB_DATASET="${CUR_DATASET}/${JOB}"
