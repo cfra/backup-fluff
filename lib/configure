@@ -7,7 +7,7 @@
 #
 
 CONFIG_REL_DIR="$(dirname ${CONFIG_REL})"
-cd "$(dirname ${CONFIG_REL_DIR})" || exit $?
+cd "${CONFIG_REL_DIR}" || exit $?
 
 # Derive sane defaults from config name, using relpaths from config dir
 CONFIG="$(basename ${CONFIG_REL})"
@@ -30,5 +30,5 @@ fi
 
 # Derive destination dataset
 PARENT_PWD="$(pwd)"
-PARENT_DATASET="${CUR_PWD#/}"
-JOB_DATASET="${CUR_DATASET}/${JOB}"
+PARENT_DATASET="${PARENT_PWD#/}"
+JOB_DATASET="${PARENT_DATASET}/${JOB}"

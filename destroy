@@ -10,11 +10,13 @@ CODE_PATH_ABS="$(pwd)"
 
 # Setup and actual work start here
 cd "${START_PWD}"
-if [ x"$1" != "-r" -o \
-     x"${1%.conf}" = x"$1" ]; then
+if [ \
+	x"${1%.conf}" = x"$1" -o \
+	x"$2" != x"-r" \
+   ]; then
 	exec 1>&2
 	echo "This destroys all backups!"
-	echo "Usage: $0 [options] job.conf"
+	echo "Usage: $0 job.conf [options]"
 	echo ""
 	echo "Options:"
 	echo " -r Really do it"
@@ -24,4 +26,4 @@ fi
 CONFIG_REL="$1"
 . ${CODE_PATH_ABS}/lib/configure
 
-exec zfs destroy "${JOB_DATASET}"
+exec zfs destroy -r "${JOB_DATASET}"
