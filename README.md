@@ -29,3 +29,6 @@ Each successful backup creates a snapshot.
 
 Data to be backed up is transferred with [rsync](https://arstechnica.com/information-technology/2015/12/rsync-net-zfs-replication-to-the-cloud-is-finally-here-and-its-fast/).
 
+### Destroy
+
+This doesn't destroy the job. But everything ever created by it.

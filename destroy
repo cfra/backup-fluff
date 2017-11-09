@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Preparative work. Save current working directory
+# and get absolute path to code
+
+START_PWD="$(pwd)"
+CODE_PATH_REL="$(dirname $0)"
+cd "${CODE_PATH_REL}" || exit 1
+CODE_PATH_ABS="$(pwd)"
+
+# Setup and actual work start here
+cd "${START_PWD}"
+if [ x"$1" != "-r" -o \
+     x"${1%.conf}" = x"$1" ]; then
+	exec 1>&2
+	echo "This destroys all backups!"
+	echo "Usage: $0 [options] job.conf"
+	echo ""
+	echo "Options:"
+	echo " -r Really do it"
+	exit 1
+fi
+
+CONFIG_REL="$1"
+. ${CODE_PATH_ABS}/lib/configure
+
+exec zfs destroy "${JOB_DATASET}"
